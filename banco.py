@@ -1,4 +1,5 @@
 import oracledb
+import datetime
 
 def get_conexao():
     return oracledb.connect(user="RM554749", password="290704",
@@ -7,12 +8,13 @@ def get_conexao():
 def converte(registro):
     return {
         'id': registro[0],
-        'titulo': registro[1],
-        'descricao': registro[2],
+        'titulo': str(registro[1]) if isinstance(registro[1], oracledb.LOB) else registro[1],
+        'descricao': str(registro[2]) if isinstance(registro[2], oracledb.LOB) else registro[2],
         'preco': registro[3],
-        'data_inicio': registro[4],
+        'data_inicio': registro[4].strftime("%Y-%m-%d") if isinstance(registro[4], datetime.date) else registro[4],
         'duracao_horas': registro[5]
     }
+
 
 def consulta_todos():
     sql = "SELECT * FROM curso_online"
@@ -34,6 +36,7 @@ def consulta_id(id):
             return converte(dado) if dado else None
 
 def insere(curso):
+    # Utilizando TO_DATE para garantir que a data seja inserida no formato correto
     sql = """
         INSERT INTO curso_online (titulo, descricao, preco, data_inicio, duracao_horas)
         VALUES (:titulo, :descricao, :preco, TO_DATE(:data_inicio, 'YYYY-MM-DD'), :duracao_horas) 
